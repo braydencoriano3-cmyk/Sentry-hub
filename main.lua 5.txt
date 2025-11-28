@@ -1,0 +1,27 @@
+local p=game.Players.LocalPlayer
+local h=p.Character:WaitForChild("Humanoid")
+local UIS=game:GetService("UserInputService")
+local RS=game:GetService("RunService")
+local g=Instance.new("ScreenGui",p.PlayerGui)
+
+-- InfJump
+local b=Instance.new("TextButton",g);b.Size=UDim2.new(0,120,0,30);b.Position=UDim2.new(0,10,0,10);b.Text="InfJump ON"
+local inf=true; b.MouseButton1Click:Connect(function() inf=not inf;b.Text="InfJump "..(inf and "ON" or "OFF") end)
+UIS.JumpRequest:Connect(function() if inf then h:ChangeState(Enum.HumanoidStateType.Jumping) end end)
+
+-- Slider
+local function S(y,t,min,max,def)
+	local f=Instance.new("Frame",g);f.Size=UDim2.new(0,150,0,20);f.Position=UDim2.new(0,10,0,y);f.BackgroundColor3=Color3.fromRGB(50,50,50);f.Active=true
+	local fill=Instance.new("Frame",f);fill.Size=UDim2.new((def-min)/(max-min),0,1,0);fill.BackgroundColor3=Color3.fromRGB(200,200,200)
+	local l=Instance.new("TextLabel",g);l.Size=UDim2.new(0,80,0,20);l.Position=UDim2.new(0,170,0,y);l.BackgroundTransparency=1;l.Text=t..def
+	local val=def;local d=false
+	f.InputBegan:Connect(function(i) if i.UserInputType.Value<=1 then d=true; val=math.clamp((i.Position.X-f.AbsolutePosition.X)/f.AbsoluteSize.X*(max-min)+min,min,max); fill.Size=UDim2.new((val-min)/(max-min),0,1,0); l.Text=t..math.floor(val) end end)
+	UIS.InputChanged:Connect(function(i) if d and i.UserInputType.Value<=1 then val=math.clamp((i.Position.X-f.AbsolutePosition.X)/f.AbsoluteSize.X*(max-min)+min,min,max); fill.Size=UDim2.new((val-min)/(max-min),0,1,0); l.Text=t..math.floor(val) end end)
+	UIS.InputEnded:Connect(function(i) if i.UserInputType.Value<=1 then d=false end end)
+	return function() return val end
+end
+
+local getSpeed=S(50,"Speed: ",8,50,16)
+local getJump=S(80,"Jump: ",50,250,50)
+
+RS.Heartbeat:Connect(function() h.WalkSpeed=getSpeed(); h.JumpPower=getJump() end)
